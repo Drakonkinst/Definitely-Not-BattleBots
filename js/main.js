@@ -17,8 +17,7 @@ var isGameOver = false;
 
 // config
 var shouldDrawUnits = true;             // triangle models of each unit
-var shouldOptimize = false;
-var shouldChaseMouse = false;
+var shouldOptimizeTrails = false;       // automatically reduce number of vertices in trails when lag is detected
 var shouldAnnounceKills = false;
 var shouldHighlightAvoiding = true;
 var howMany = 300;
@@ -658,7 +657,7 @@ function draw() {
     // Window Info
     scale(1 / zoom);
     var elapsed = Date.now() - start;
-    if(elapsed >= 10 && shouldOptimize) {
+    if(elapsed >= 10 && shouldOptimizeTrails) {
         debug("[!] High lag detected, employing optimizations");
         optimizePaths();
     }
