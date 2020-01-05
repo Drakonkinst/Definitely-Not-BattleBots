@@ -571,7 +571,7 @@ const Team = (function() {
         YELLOW: {
             color: "yellow",
             speed: 4.0,
-            canCorrupt: true,
+            canCorrupt: false,
             spawn: new Vector(rightEdge, bottomEdge),
             update: (function() {
                 const REST_LENGTH = 2000;
