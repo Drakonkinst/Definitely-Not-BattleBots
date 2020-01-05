@@ -16,10 +16,7 @@ var zoom = 1.0;
 var isGameOver = false;
 
 // config
-var isStopped = false;
-var shouldDrawPaths = false;
-var shouldDrawNPCs = true;
-var shouldDrawGraves = false;
+var shouldDrawUnits = true;             // triangle models of each unit
 var shouldOptimize = false;
 var shouldChaseMouse = false;
 var shouldAnnounceKills = false;
@@ -654,7 +651,7 @@ function draw() {
         drawPaths();
     }
     
-    if(shouldDrawNPCs) {
+    if(shouldDrawUnits) {
         drawUnits();
     }
     
