@@ -15,19 +15,32 @@ var dummySteering;
 var zoom = 1.0;
 var isGameOver = false;
 
-// config
-var shouldDrawUnits = true;             // triangle models of each unit
+/* CONFIG */
+
+// general
+var isStopped = false;                  // whether the game is paused/stopped or not
 var shouldOptimizeTrails = false;       // automatically reduce number of vertices in trails when lag is detected
-var shouldAnnounceKills = false;
-var shouldHighlightAvoiding = true;
-var howMany = 300;
-var showFPS = false;
-var showMouseInfo = true;
-var showTeamInfo = true;
-var shouldFixSpawn = true;
-var electricFence = true; // kill units who are out of bounds
-var infectionMode = true;
-var populationCombatBalance = false; // teams with relatively low # units win fights more often
+var shouldChaseMouse = false;           // flag to chase mouse for units that have been coded to do it
+var shouldAnnounceKills = false;        // announce kills in console
+
+// visibility
+var shouldDrawPaths = false;            // trails behind each unit
+var shouldDrawUnits = true;             // triangle models of each unit
+var shouldDrawGraves = false;           // circles representing fallen units
+var shouldHighlightAvoiding = false;    // highlight units that are avoiding boundaries
+var showFPS = false;                    // show fps/lag in upper left
+var showMouseInfo = true;               // show mouse and zoom info in lower left
+var showTeamInfo = true;                // show team population in lower right
+
+// spawning
+var howMany = 300;                      // how many units to spawn total
+var shouldFixSpawn = true;              // fix unit spawning to their team's spawnpoint (instead of random placement)
+
+// gamerules
+var electricFence = true;               // kill units who are out of bounds
+var infectionMode = false;               // all teams can corrupt defeated enemies to their side
+var populationCombatBalance = false;    // chance to win fights is inversely dependent on
+                                        // units remaining (compared to overall population)
 
 /**
 Represents a 2D vector.
