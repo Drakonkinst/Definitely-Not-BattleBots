@@ -3,3 +3,4 @@
 # Useful .gitignore templates: https://github.com/github/gitignore
 .editorconfig
 modernizr-3.8.0.min.js
+config.js

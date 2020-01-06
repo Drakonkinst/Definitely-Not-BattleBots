@@ -16,150 +16,50 @@ var zoom = 1.0;
 var isGameOver = false;
 
 /* CONFIG */
+var Config = (function() {
+    var userConfig = {};
 
-// general
-var isStopped = false;                  // whether the game is paused/stopped or not
-var shouldOptimizeTrails = false;       // automatically reduce number of vertices in trails when lag is detected
-var shouldChaseMouse = false;           // flag to chase mouse for units that have been coded to do it
-var shouldAnnounceKills = false;        // announce kills in console
+    // import config from another file if possible
+    if(typeof getConfig === "function") {
+        userConfig = getConfig();
+        debug("Config loaded!");
+    }
+    var result = {};
 
-// visibility
-var shouldDrawPaths = false;            // trails behind each unit
-var shouldDrawUnits = true;             // triangle models of each unit
-var shouldDrawGraves = false;           // circles representing fallen units
-var shouldHighlightAvoiding = false;    // highlight units that are avoiding boundaries
-var showFPS = false;                    // show fps/lag in upper left
-var showMouseInfo = true;               // show mouse and zoom info in lower left
-var showTeamInfo = true;                // show team population in lower right
-
-// spawning
-var howMany = 300;                      // how many units to spawn total
-var shouldFixSpawn = true;              // fix unit spawning to their team's spawnpoint (instead of random placement)
-
-// gamerules
-var electricFence = true;               // kill units who are out of bounds
-var infectionMode = false;               // all teams can corrupt defeated enemies to their side
-var populationCombatBalance = false;    // chance to win fights is inversely dependent on
-                                        // units remaining (compared to overall population)
-
-/**
-Represents a 2D vector.
-Reference: https://evanw.github.io/lightgl.js/docs/vector.html
-*/
-class Vector {
-    /**
-     * Constructs a Vector object.
-     * @param {number} x 
-     * @param {number} y 
-     */
-    constructor(x, y) {
-        this.x = x || 0;
-        this.y = y || 0;
+    function setDefaultConfig(options, initial) {
+        for(var k in options) {
+            if(options.hasOwnProperty(k)) {
+                if(userConfig.hasOwnProperty(k)) {
+                    result[k] = userConfig[k];
+                } else {
+                    result[k] = options[k];
+    }
+    }
+    }
     }
 
-    /**
-     * Creates a copy of the vector.
-     */
-    copy() {
-        return new Vector(this.x, this.y);
-    }
+    setDefaultConfig({
+        "isStopped": false,
+        "shouldOptimizeTrails": false,
+        "shouldChaseMouse": false,
+        "shouldAnnounceKills": false,
+        "shouldDrawPaths": false,
+        "shouldDrawUnits": true,
+        "shouldDrawGraves": false,
+        "shouldHighlightAvoiding": false,
+        "drawDeadPaths": false,
+        "showFPS": false,
+        "showMouseInfo": true,
+        "showTeamInfo": true,
+        "howMany": 300,
+        "shouldFixSpawn": true,
+        "electricFence": true,
+        "infectionMode": false,
+        "populationCombatBalance": false
+    });
 
-    /**
-     * Adds the vector with another vector. This modifies the current vector.
-     * 
-     * @param {Vector} vector The other vector to add.
-     * @returns {Vector} The current vector.
-     */
-    add(vector) {
-        this.x += vector.x;
-        this.y += vector.y;
-        return this;
-    }
-
-    /**
-     * Subtracts another vector from the current vector. This modifies the
-     * current vector.
-     * 
-     * @param {Vector} vector The other vector to subtract.
-     * @returns {Vector} The current vector.
-     */
-    subtract(vector) {
-        this.x -= vector.x;
-        this.y -= vector.y;
-        return this;
-    }
-
-    /**
-     * Multiplies all entries of the vector by a scalar value. This modifies
-     * the current vector. Duplicate of Vector::scale.
-     * 
-     * @param {number} factor The factor to multiply the vector by.
-     * @returns {Vector} The current vector.
-     */
-    multiply(factor) {
-        return this.scale(factor);
-    }
-
-    /**
-     * Divides all entries of the vector by a scalar value. This modifies the
-     * current vector.
-     * 
-     * @param {number} factor The factor to divide the vector by.
-     * @returns {Vector} The current vector.
-     */
-    divide(factor) {
-        this.x /= factor;
-        this.y /= factor;
-        return this;
-    }
-
-    /**
-     * Negates all entries of the vector. This modifies the current vector.
-     * 
-     * @returns {Vector} The current vector.
-     */
-    negate() {
-        this.x = -this.x;
-        this.x = -this.y;
-        return this;
-    }
-
-    /**
-     * Multiplies all entries of the vector by a scalar value. This modifies
-     * the current vector.
-     * 
-     * @param {number} factor The factor to multiply the vector by.
-     * @returns {Vector} The current vector.
-     */
-    scale(factor) {
-        this.x *= factor;
-        this.y *= factor;
-        return this;
-    }
-
-    /**
-     * Scales the vector to match the given magnitude. This modifies the
-     * current vector. Has the same effect as normalizing the vector then
-     * scaling it by the given magnitude.
-     * 
-     * @param {number} magnitude The desired magnitude of the vector.
-     * @returns {Vector} The current vector.
-     */
-    scaleToMagnitude(magnitude) {
-        var oldMagnitude = this.magnitude();
-        return this.scale(magnitude / oldMagnitude);
-    }
-
-    /**
-     * Returns dot product of the current vector with another vector.
-     * 
-     * @param {Vector} vector The other vector to take the dot product with.
-     * @returns {number} The dot product of the current vector with another
-     *                   vector.
-     */
-    dot(vector) {
-        return this.x * vector.x + this.y * vector.y;
-    }
+    return result;
+})();
 
     /**
      * Returns the magnitude of the vector.
@@ -252,7 +152,7 @@ class Unit {
 
             /*
             // Default AI
-            if(shouldChaseMouse) {
+            if(Config.shouldChaseMouse) {
                 var mousePos = getMousePos();
                 if(this.steering.isValid(mousePos)) {
                     this.steering.seek(mousePos);
@@ -288,13 +188,13 @@ class Unit {
                             + Team.YELLOW.unitsRemaining;
 
                 var win;
-                if(populationCombatBalance) {
+                if(Config.populationCombatBalance) {
                     win = chance(1 - (this.team.unitsRemaining / population)) ? this : other;
                 } else {
                     win = chance(0.5) ? this : other;
                 }
                 var lose = (win == this) ? other : this;
-                if(shouldAnnounceKills) {
+                if(Config.shouldAnnounceKills) {
                     debug(win.id + "(" + win.team.color.toUpperCase() + ") killed " + lose.id + "(" + lose.team.color.toUpperCase() + ")");
                 }
                 
@@ -659,18 +559,18 @@ function draw() {
     strokeWeight(5.0);
     rect(0, 0, width, height);
 
-    if(shouldDrawPaths) {
+    if(Config.shouldDrawPaths) {
         drawPaths();
     }
     
-    if(shouldDrawUnits) {
+    if(Config.shouldDrawUnits) {
         drawUnits();
     }
     
     // Window Info
     scale(1 / zoom);
     var elapsed = Date.now() - start;
-    if(elapsed >= 10 && shouldOptimizeTrails) {
+    if(elapsed >= 10 && Config.shouldOptimizeTrails) {
         debug("[!] High lag detected, employing optimizations");
         optimizePaths();
     }
@@ -681,19 +581,19 @@ function draw() {
     stroke(0);
     fill(0);
 
-    if(showFPS) {
+    if(Config.showFPS) {
         text(elapsed + "ms (" + Math.round(1000 / elapsed) + " fps)", 25, 30);
         text("Max: " + maxFPS + "ms", 25, 45);
     }
 
-    if(showTeamInfo) {
+    if(Config.showTeamInfo) {
         text("Red: " + Team.RED.unitsRemaining, width - 75, height - 75);
         text("Blue: " + Team.BLUE.unitsRemaining, width - 75, height - 60);
         text("Green: " + Team.GREEN.unitsRemaining, width - 75, height - 45);
         text("Yellow: " + Team.YELLOW.unitsRemaining, width - 75, height - 30);
     }
 
-    if(showMouseInfo) {
+    if(Config.showMouseInfo) {
         var mousePos = getMousePos();
         if(!dummySteering.isValid(mousePos)) {
             fill("red");
@@ -730,7 +630,7 @@ var drawUnit = (function() {
         var pos = unit.pos;
 
         if(unit.isDead) {
-            if(shouldDrawGraves) {
+            if(Config.shouldDrawGraves) {
                 fill(UNIT_GRAVE_COLOR);
                 ellipse(pos.x, pos.y, UNIT_GRAVE_RADIUS, UNIT_GRAVE_RADIUS);
             }
@@ -741,7 +641,7 @@ var drawUnit = (function() {
         }
         */
         } else {
-            if(unit.steering.isAvoiding && shouldHighlightAvoiding) {
+            if(unit.steering.isAvoiding && Config.shouldHighlightAvoiding) {
                 fill(UNIT_AVOIDING_COLOR);
             } else {
                 fill(unit.team.color);
@@ -786,7 +686,7 @@ function drawPaths() {
     var numVertices = 0;
     for(var k in Unit.unitList) {
         var unit = Unit.unitList[k];
-        if(unit.isDead) {
+        if(!Config.drawDeadPaths && unit.isDead) {
             continue;
         }
         var path = pathMap[unit.id];
@@ -834,7 +734,7 @@ function clearDead() {
 
 /* General */
 function update() {
-    if(isStopped) {
+    if(Config.isStopped) {
         return;
     }
 
@@ -859,18 +759,18 @@ function checkForWin() {
     if(teamsRemaining.length == 1) {
         debug("Game over, " + teamsRemaining[0] + " team wins!");
         isGameOver = true;
-        isStopped = true;
+        Config.isStopped = true;
     }
     // do not immediately crash
     if(teamsRemaining.length == 0 && worldTick > 10) {
         debug("Something went wrong! Everyone is dead");
-        isStopped = true;
+        Config.isStopped = true;
     }
 }
 
 
 function addUnit(x, y, team) {
-    if(shouldFixSpawn) {
+    if(Config.shouldFixSpawn) {
         x = team.spawn.x;
         y = team.spawn.y;
     }
@@ -887,7 +787,7 @@ function setup() {
         var team = TEAMS[i];
         Unit.teamMap[team.color] = [];
         team.unitsRemaining = 0;
-        if(infectionMode) {
+        if(Config.infectionMode) {
             team.canCorrupt = true;
         }
     }
@@ -897,7 +797,7 @@ function setup() {
 
     // spawn units
     for(var k in Team) {
-        for(var i = 0; i < howMany / 4; i++) {
+        for(var i = 0; i < Config.howMany / 4; i++) {
             var x = Math.random() * (width - SPAWN_MARGIN) + SPAWN_MARGIN / 2;
             var y = Math.random() * (height - SPAWN_MARGIN) + SPAWN_MARGIN / 2;
             var team = Team[k];
@@ -917,7 +817,7 @@ function mouseClicked() {
     if(isGameOver) {
         return;
     }
-    isStopped = !isStopped;
+    Config.isStopped = !Config.isStopped;
 }
 
 function mouseWheel() {
