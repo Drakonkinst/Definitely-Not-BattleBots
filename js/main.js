@@ -61,66 +61,6 @@ var Config = (function() {
     return result;
 })();
 
-    /**
-     * Returns the magnitude of the vector.
-     * 
-     * @returns {number} The magnitude of the vector.
-     */
-    magnitude() {
-        return Math.sqrt(this.magnitudeSquared());
-    }
-
-    /**
-     * Returns the squared magnitude of the vector.
-     * 
-     * @returns {number} The squared magnitude of the vector.
-     */
-    magnitudeSquared() {
-        return this.dot(this);
-    }
-
-    /**
-     * Returns the squared distance between the current vector and another
-     * vector.
-     * 
-     * @param {Vector} vector The vector to calculate the squared distance
-     *                        between.
-     * @returns {number} The squared distance between the current vector
-     *                   and another vector.
-     */
-    distanceSquared(vector) {
-        var deltaX = this.x - vector.x;
-        var deltaY = this.y - vector.y;
-        return deltaX * deltaX + deltaY * deltaY;
-    }
-
-    /**
-     * Returns the distance between the current vector and another vector.
-     * 
-     * @param {Vector} vector The vector to calculate the distance between.
-     * @returns {number} The distance between the current vector and another
-     *                   vector.
-     */
-    distance(vector) {
-        return Math.sqrt(this.distanceSquared(vector));
-    }
-
-    /**
-     * Prints the vector in the form (x, y).
-     * 
-     * @param {boolean} shouldRound True if vector entries should be rounded to
-     *                              the nearest integer.
-     * @returns {String} "(x, y)"
-     */
-    toString(shouldRound) {
-        if(shouldRound) {
-            return "(" + Math.round(this.x) + ", " + Math.round(this.y) + ")";
-        }
-        return "(" + this.x + ", " + this.y + ")";
-    }
-    
-}
-
 /* Unit */
 // TODO finite state machine
 class Unit {
@@ -261,12 +201,6 @@ class SteeringManager {
         SteeringManager.truncate(this.host.velocity, this.host.maxVelocity);
 
         this.host.pos.add(this.host.velocity);
-        if(!this.isValid(this.host.pos)) {
-            debug("CRITICAL FAILURE AT " + this.host.pos.toString());
-            if(electricFence) {
-                this.host.isDead = true;
-            }
-        }
         this.reset();
     }
     
