@@ -755,12 +755,9 @@ function update() {
 
 function checkForWin() {
     var teamsRemaining = [];
-    for(var k in Unit.teamMap) {
-        for(var i in Unit.teamMap[k]) {
-            if(!Unit.teamMap[k][i].isDead) {
+    for(var k in Team) {
+        if(Team[k].unitsRemaining > 0) {
                 teamsRemaining.push(k);
-                break;
-            }
         }
     }
     if(teamsRemaining.length == 1) {
