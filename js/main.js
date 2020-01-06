@@ -168,6 +168,13 @@ class Unit {
     
         this.steering.update();
         
+        if(!this.steering.isValid(this.pos)) {
+            debug("CRITICAL FAILURE AT " + this.pos.toString());
+            if(Config.electricFence) {
+                this.isDead = true;
+                this.team.unitsRemaining--;
+            }
+        }
         
         if(worldTick % RECORD_INTERVAL == 0) {
             pathMap[this.id].push(this.pos.copy());
@@ -370,7 +377,7 @@ function gangAI(team) {
         }
         team.leader = choose(choices);
         team.leader.maxVelocity -= 0.5;
-        //leader.maxVelocity = 5.0; // SANIC HOURS
+        //team.leader.maxVelocity = 5.0; // SANIC HOURS
     }
 
     return function(unit) {
