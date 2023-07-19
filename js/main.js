@@ -1,4 +1,5 @@
 // TODO zoom on mouse
+// TODO roads
 
 const CANVAS_MARGIN = 0.05;
 const CANVAS_DIMENSION_MULTIPLIER = 1 - CANVAS_MARGIN * 2;
@@ -33,9 +34,9 @@ var Config = (function() {
                     result[k] = userConfig[k];
                 } else {
                     result[k] = options[k];
-    }
-    }
-    }
+                }
+            }
+        }
     }
 
     setDefaultConfig({
@@ -107,7 +108,7 @@ class Unit {
         }
     
         this.steering.update();
-        
+
         if(!this.steering.isValid(this.pos)) {
             debug("CRITICAL FAILURE AT " + this.pos.toString());
             if(Config.electricFence) {
@@ -310,7 +311,7 @@ function gangAI(team) {
             }
         }
         team.leader = choose(choices);
-        team.leader.maxVelocity -= 0.5;
+        team.leader.maxVelocity -= 1.0;
         //team.leader.maxVelocity = 5.0; // SANIC HOURS
     }
 
@@ -330,6 +331,7 @@ function gangAI(team) {
 
     }
 }
+
 const Team = (function() {
     // calculate canvas dimensions by hand since it technically doesn't exist yet
     const rightEdge = window.innerWidth * CANVAS_DIMENSION_MULTIPLIER - SPAWN_MARGIN;
@@ -337,7 +339,7 @@ const Team = (function() {
     return {
         RED: {
             color: "red",
-            speed: 1.5,
+            speed: 4.0,
             canCorrupt: false,
             spawn: new Vector(SPAWN_MARGIN, SPAWN_MARGIN),
             update: function(unit) {
@@ -362,6 +364,7 @@ const Team = (function() {
                         }
                     }
                     
+                    // Be unafraid! ...or have common sense
                     if(numEnemiesNearby > TOO_MANY_ENEMIES) {
                         //unit.steering.wander();
                         unit.steering.flee(closestEnemy.pos);
@@ -410,8 +413,8 @@ const Team = (function() {
             update: function(unit) {}
         },
         YELLOW: {
-            color: "yellow",
-            speed: 4.0,
+            color: "gold",
+            speed: 3.0,
             canCorrupt: false,
             spawn: new Vector(rightEdge, bottomEdge),
             update: (function() {
@@ -440,9 +443,9 @@ const Team = (function() {
     }
 })();
 Team.GREEN.update = gangAI(Team.GREEN);
-//Team.YELLOW.update = gangAI(Team.YELLOW);
+Team.YELLOW.update = gangAI(Team.YELLOW);
 //Team.RED.update = gangAI(Team.RED);
-//Team.BLUE.update = gangAI(Team.BLUE);
+Team.BLUE.update = gangAI(Team.BLUE);
 
 /* Utils */
 function toRadians(degrees) {
@@ -528,10 +531,21 @@ function draw() {
     }
 
     if(Config.showTeamInfo) {
-        text("Red: " + Team.RED.unitsRemaining, width - 75, height - 75);
-        text("Blue: " + Team.BLUE.unitsRemaining, width - 75, height - 60);
-        text("Green: " + Team.GREEN.unitsRemaining, width - 75, height - 45);
-        text("Yellow: " + Team.YELLOW.unitsRemaining, width - 75, height - 30);
+        if(Team.GREEN.unitsRemaining != null) {
+            text("Green: " + Team.GREEN.unitsRemaining, width - 150, height - 75);  //used to be width - 75
+        }
+
+        if(Team.BLUE.unitsRemaining != null) {
+            text("Blue: " + Team.BLUE.unitsRemaining, width - 150, height - 60);
+        }
+
+        if(Team.RED.unitsRemaining != null) {
+            text("Murder Hornets: " + Team.RED.unitsRemaining, width - 150, height - 45);
+        }
+
+        if(Team.YELLOW.unitsRemaining != null) {
+            text("Bees: " + Team.YELLOW.unitsRemaining, width - 150, height - 30);
+        }  
     }
 
     if(Config.showMouseInfo) {
@@ -691,7 +705,7 @@ function checkForWin() {
     var teamsRemaining = [];
     for(var k in Team) {
         if(Team[k].unitsRemaining > 0) {
-                teamsRemaining.push(k);
+            teamsRemaining.push(k);
         }
     }
     if(teamsRemaining.length == 1) {
@@ -720,7 +734,8 @@ function addUnit(x, y, team) {
 
 function setup() {
     // register teams
-    const TEAMS = [ Team.BLUE, Team.RED, Team.GREEN, Team.YELLOW ];
+    //const TEAMS = [ Team.BLUE, Team.RED, Team.GREEN, Team.YELLOW ];
+    const TEAMS = [ Team.RED, Team.YELLOW ];
     for(var i in TEAMS) {
         var team = TEAMS[i];
         Unit.teamMap[team.color] = [];
@@ -734,11 +749,11 @@ function setup() {
     resetCanvasSize();
 
     // spawn units
-    for(var k in Team) {
+    for(var k in TEAMS) {
         for(var i = 0; i < Config.howMany / 4; i++) {
             var x = Math.random() * (width - SPAWN_MARGIN) + SPAWN_MARGIN / 2;
             var y = Math.random() * (height - SPAWN_MARGIN) + SPAWN_MARGIN / 2;
-            var team = Team[k];
+            var team = TEAMS[k];
             addUnit(x, y, team);
         }
     }
